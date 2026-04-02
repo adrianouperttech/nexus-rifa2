@@ -1,14 +1,10 @@
-
 // index.js
 
 const { execSync } = require('child_process');
 
 try {
-  // Ensure Prisma client is generated
-  console.log('Executing prisma generate...');
-  execSync('npx prisma generate', { stdio: 'inherit' });
-  console.log('Prisma client generated.');
-
+  // A lógica do Prisma foi removida.
+  
   // Start the main application
   console.log('Starting application from dist/server.js...');
   require('./dist/server.js');
