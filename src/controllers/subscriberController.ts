@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
 import { NotFoundError, BadRequestError } from '../utils/errors';
+import { ReservationPayment } from '@prisma/client';
 
 export const buyPlan = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -39,7 +40,7 @@ export const getDashboardInfo = async (req: AuthRequest, res: Response, next: Ne
         status: 'APPROVED'
       }
     });
-    const totalCollected = reservations.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalCollected = reservations.reduce((acc: number, curr: ReservationPayment) => acc + curr.amount, 0);
 
     res.json({
       success: true,

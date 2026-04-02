@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 import { NotFoundError, BadRequestError } from '../utils/errors';
+import { Prisma } from '@prisma/client';
 
 export const getRaffleBySlug = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -50,7 +51,7 @@ export const reserveNumbers = async (req: Request, res: Response, next: NextFunc
     }
 
     // Process Transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Find or create buyer
       let buyer = await tx.ticketBuyer.findFirst({ where: { email } });
       if (!buyer) {
