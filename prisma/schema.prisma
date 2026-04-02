@@ -1,0 +1,120 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "auth"]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("SUBSCRIBER") // ADMIN or SUBSCRIBER
+  status    String   @default("ACTIVE") // ACTIVE or BLOCKED
+  
+  // Settings for the subscriber
+  pixKey          String?
+  whatsappToken   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+  raffles       Raffle[]
+
+  @@schema("public")
+}
+
+model PlatformPlan {
+  id          String   @id @default(uuid())
+  name        String
+  maxRaffles  Int      @default(10)
+  price       Float
+  cycle       String   // MONTHLY, SEMIANNUAL, ANNUAL
+  createdAt   DateTime @default(now())
+  
+  subscriptions Subscription[]
+
+  @@schema("public")
+}
+
+model Subscription {
+  id            String   @id @default(uuid())
+  userId        String
+  planId        String
+  status        String   @default("INACTIVE") // ACTIVE, INACTIVE, OVERDUE
+  validUntil    DateTime?
+  createdAt     DateTime @default(now())
+  
+  user          User         @relation(fields: [userId], references: [id])
+  plan          PlatformPlan @relation(fields: [planId], references: [id])
+
+  @@schema("public")
+}
+
+model Raffle {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  description     String?
+  photoUrl        String?
+  pricePerNumber  Float
+  slug            String   @unique
+  totalNumbers    Int      @default(100)
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id])
+  numbers         RaffleNumber[]
+  payments        ReservationPayment[]
+
+  @@schema("public")
+}
+
+model TicketBuyer {
+  id              String   @id @default(uuid())
+  name            String
+  email           String
+  whatsapp        String
+
+  createdAt       DateTime @default(now())
+  
+  numbers         RaffleNumber[]
+  payments        ReservationPayment[]
+
+  @@schema("public")
+}
+
+model RaffleNumber {
+  id              String   @id @default(uuid())
+  raffleId        String
+  number          Int
+  status          String   @default("AVAILABLE") // AVAILABLE, RESERVED, PAID
+  buyerId         String?
+
+  raffle          Raffle       @relation(fields: [raffleId], references: [id])
+  buyer           TicketBuyer? @relation(fields: [buyerId], references: [id])
+
+  @@schema("public")
+}
+
+model ReservationPayment {
+  id              String   @id @default(uuid())
+  raffleId        String
+  buyerId         String
+  amount          Float
+  pixCopyPaste    String?
+  pixQrCode       String?
+  status          String   @default("PENDING") // PENDING, APPROVED, EXPIRED
+  txid            String?  @unique
+
+  createdAt       DateTime @default(now())
+  
+  raffle          Raffle       @relation(fields: [raffleId], references: [id])
+  buyer           TicketBuyer  @relation(fields: [buyerId], references: [id])
+
+  @@schema("public")
+}
