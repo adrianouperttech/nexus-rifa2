@@ -5,9 +5,9 @@
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "prisma generate && tsc",
+    "build": "tsc",
     "dev": "tsx watch src/server.ts",
-    "start": "prisma generate && node dist/server.js"
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -16,15 +16,13 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^7.6.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
-    "node-cron": "^4.2.1",
-    "prisma": "^7.6.0"
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
