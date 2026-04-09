@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL") // This is the critical line
 }
 
 model User {
@@ -14,10 +15,10 @@ model User {
   email         String   @unique
   password      String
   name          String?
-  whatsappToken String?  // Added for WhatsApp integration
+  whatsappToken String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  raffles       Raffle[] // A user can have multiple raffles
+  raffles       Raffle[]
 }
 
 model Raffle {
@@ -28,7 +29,7 @@ model Raffle {
   numbers            Int
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  userId             Int // Foreign key for the user who owns the raffle
+  userId             Int
   user               User                 @relation(fields: [userId], references: [id])
   ReservationPayment ReservationPayment[]
 }
@@ -37,25 +38,25 @@ model Buyer {
   id        Int                  @id @default(autoincrement())
   name      String
   phone     String
-  whatsapp  String? // Added for WhatsApp integration
+  whatsapp  String?
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
   Ticket    ReservationPayment[]
 }
 
 model ReservationPayment {
-  id          Int      @id @default(autoincrement())
-  raffleId    Int
-  buyerId     Int
-  number      Int
-  status      String   @default("pending") // e.g., pending, paid, expired
-  expiresAt   DateTime
-  amount      Float?   // Added for payment amount
-  pixCopyPaste String? // Added for Pix payment
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  raffle      Raffle   @relation(fields: [raffleId], references: [id])
-  buyer       Buyer    @relation(fields: [buyerId], references: [id])
+  id           Int      @id @default(autoincrement())
+  raffleId     Int
+  buyerId      Int
+  number       Int
+  status       String   @default("pending")
+  expiresAt    DateTime
+  amount       Float?
+  pixCopyPaste String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  raffle       Raffle   @relation(fields: [raffleId], references: [id])
+  buyer        Buyer    @relation(fields: [buyerId], references: [id])
 
   @@unique([raffleId, number])
 }
