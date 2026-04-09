@@ -5,9 +5,11 @@ import userRoutes from './routes/userRoutes';
 import raffleRoutes from './routes/raffleRoutes';
 import buyerRoutes from './routes/buyerRoutes';
 import reservationRoutes from './routes/reservationRoutes';
+import { startCron } from './utils/cron';
+import { prisma } from './utils/prisma';
 import 'source-map-support/register';
 
-// Load environment variables at the very top
+// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -28,15 +30,12 @@ app.use('/api', reservationRoutes);
 
 async function startServer() {
   try {
-    // Dynamically import prisma and cron only when the server starts
-    const { prisma } = await import('./utils/prisma');
-    const { startCron } = await import('./utils/cron');
-
-    // Test the database connection
+    // The Prisma client is now initialized in utils/prisma.ts, 
+    // so we just need to ensure the connection is alive.
     await prisma.$connect();
     console.log('Database connected successfully');
 
-    // Start the cron job after the database is connected
+    // Start the cron job
     startCron(prisma);
 
     app.listen(port, () => {
@@ -45,8 +44,6 @@ async function startServer() {
 
   } catch (error) {
     console.error('Failed to start the server:', error);
-    // Ensure prisma disconnects if it was connected
-    const { prisma } = await import('./utils/prisma');
     await prisma.$disconnect();
     process.exit(1);
   }
