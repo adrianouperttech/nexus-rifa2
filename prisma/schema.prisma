@@ -10,31 +10,36 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  password      String
+  name          String?
+  whatsappToken String?  // Added for WhatsApp integration
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  raffles       Raffle[] // A user can have multiple raffles
 }
 
 model Raffle {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  price       Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  numbers     Int
-  RaffleNumber ReservationPayment[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  description        String
+  price              Float
+  numbers            Int
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  userId             Int // Foreign key for the user who owns the raffle
+  user               User                 @relation(fields: [userId], references: [id])
+  ReservationPayment ReservationPayment[]
 }
 
 model Buyer {
-  id        Int      @id @default(autoincrement())
+  id        Int                  @id @default(autoincrement())
   name      String
   phone     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  whatsapp  String? // Added for WhatsApp integration
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
   Ticket    ReservationPayment[]
 }
 
@@ -45,6 +50,8 @@ model ReservationPayment {
   number      Int
   status      String   @default("pending") // e.g., pending, paid, expired
   expiresAt   DateTime
+  amount      Float?   // Added for payment amount
+  pixCopyPaste String? // Added for Pix payment
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   raffle      Raffle   @relation(fields: [raffleId], references: [id])
