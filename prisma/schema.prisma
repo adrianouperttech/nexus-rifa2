@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -16,4 +17,39 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Raffle {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  numbers     Int
+  RaffleNumber ReservationPayment[]
+}
+
+model Buyer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Ticket    ReservationPayment[]
+}
+
+model ReservationPayment {
+  id          Int      @id @default(autoincrement())
+  raffleId    Int
+  buyerId     Int
+  number      Int
+  status      String   @default("pending") // e.g., pending, paid, expired
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  raffle      Raffle   @relation(fields: [raffleId], references: [id])
+  buyer       Buyer    @relation(fields: [buyerId], references: [id])
+
+  @@unique([raffleId, number])
 }
