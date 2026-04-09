@@ -5,11 +5,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error("CRITICAL: DATABASE_URL environment variable is not set.");
 }
 
-// Explicitly pass the database URL to the Prisma Client constructor.
+// Explicitly pass the database URL to the Prisma Client constructor using the correct 'datasourceUrls' property.
 export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
+  datasourceUrls: {
+    db: process.env.DATABASE_URL,
   },
 });
