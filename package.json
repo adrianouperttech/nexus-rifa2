@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx --no-install prisma generate && rm -rf dist && tsc",
+    "build": "npx prisma generate && rm -rf dist && tsc",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js"
   },
@@ -16,7 +16,7 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^5.16.1",
+    "@prisma/client": "*",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
@@ -32,7 +32,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^20.14.2",
-    "prisma": "^5.16.1",
+    "prisma": "*",
     "tsx": "^4.21.0",
     "typescript": "^5.4.5"
   }
