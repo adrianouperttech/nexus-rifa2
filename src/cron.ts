@@ -1,5 +1,7 @@
 import cron from 'node-cron';
-import { prisma } from './utils/prisma';
+import { getPrismaClient } from './utils/prisma';
+
+const prisma = getPrismaClient();
 
 // Roda todo dia ao meio-dia
 cron.schedule('0 12 * * *', async () => {
