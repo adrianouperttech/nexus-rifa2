@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // This was the missing line
+  // The 'url' property is removed as it's deprecated in Prisma 7+ schema files.
 }
 
 model User {
