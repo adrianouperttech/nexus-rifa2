@@ -1,84 +1,74 @@
 import { Request, Response, NextFunction } from 'express';
 import { getPrismaClient } from '../utils/prisma';
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError, BadRequestError } from '../utils/errors';
 
 const prisma = getPrismaClient();
 
-export const getDashboardInfo = async (req: Request, res: Response, next: NextFunction) => {
+// NOTE: All plan and subscription logic has been removed as the models are not in the schema.
+
+export const listUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const totalSubscribers = await prisma.user.count({ where: { role: 'SUBSCRIBER' } });
-    const totalPlans = await prisma.platformPlan.count();
+    // Removed filtering by 'role' as it does not exist on the User model.
+    const users = await prisma.user.findMany();
+    res.json({ success: true, users });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      throw new BadRequestError('Invalid user ID.');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        raffles: true, // This relation exists
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    // Removed counting 'subscriptions' as the model does not exist.
+    res.json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      throw new BadRequestError('Invalid user ID.');
+    }
     
-    res.json({
-      success: true,
-      data: {
-        totalSubscribers,
-        totalPlans,
-        totalRevenue: 0
-      }
+    const { name, email, whatsappToken } = req.body;
+
+    // Removed 'status' update as it does not exist on the User model.
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { name, email, whatsappToken },
     });
+
+    res.json({ success: true, user: updatedUser });
   } catch (error) {
     next(error);
   }
 };
 
-export const listSubscribers = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const subscribers = await prisma.user.findMany({
-      where: { role: 'SUBSCRIBER' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        status: true,
-        createdAt: true,
-        _count: {
-          select: { raffles: true, subscriptions: true }
-        }
-      }
-    });
-    res.json({ success: true, subscribers });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const toggleSubscriberStatus = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const id = String(req.params.id);
-    const { status } = req.body; // ACTIVE or BLOCKED
-
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundError('Usuário não encontrado');
-
-    const updated = await prisma.user.update({
-      where: { id },
-      data: { status }
-    });
-
-    res.json({ success: true, user: updated });
-  } catch (error) {
-    next(error);
-  }
-};
-
+// The following functions related to Platform Plans are removed as the model is not in the schema.
+/*
 export const createPlan = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name, maxRaffles, price, cycle } = req.body;
-    const plan = await prisma.platformPlan.create({
-      data: { name, maxRaffles, price, cycle }
-    });
-    res.json({ success: true, plan });
-  } catch (error) {
-    next(error);
-  }
+  next(new Error('Not Implemented: PlatformPlan model does not exist in schema.'));
 };
 
-export const getPlans = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const plans = await prisma.platformPlan.findMany();
-    res.json({ success: true, plans });
-  } catch (error) {
-    next(error);
-  }
+export const listPlans = async (req: Request, res: Response, next: NextFunction) => {
+  next(new Error('Not Implemented: PlatformPlan model does not exist in schema.'));
 };
+*/

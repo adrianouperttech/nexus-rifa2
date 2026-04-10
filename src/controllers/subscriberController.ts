@@ -1,129 +1,105 @@
 import { Request, Response, NextFunction } from 'express';
 import { getPrismaClient } from '../utils/prisma';
-import { AuthRequest } from '../middlewares/auth';
 import { NotFoundError, BadRequestError } from '../utils/errors';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
 const prisma = getPrismaClient();
 
-export const buyPlan = async (req: AuthRequest, res: Response, next: NextFunction) => {
+// NOTE: All logic related to 'PlatformPlan' and 'Subscription' has been removed
+// as these models do not exist in the Prisma schema.
+
+export const getDashboard = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { planId } = req.body;
-    const userId = req.user!.userId;
+    const userId = req.user?.id;
 
-    const plan = await prisma.platformPlan.findUnique({ where: { id: planId } });
-    if (!plan) throw new NotFoundError('Plano não encontrado.');
-
-    const subscription = await prisma.subscription.create({
-      data: {
-        userId,
-        planId,
-        status: 'ACTIVE',
-        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
-      }
-    });
-
-    res.json({ success: true, message: 'Plano atualizado', subscription });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getDashboardInfo = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user!.userId;
-    const raffles = await prisma.raffle.findMany({ where: { userId } });
-    
-    const reservations = await prisma.reservationPayment.findMany({
-      where: {
-        raffle: { userId },
-        status: 'APPROVED'
-      }
-    });
-    const totalCollected = reservations.reduce((acc: number, curr: any) => acc + curr.amount, 0);
-
-    res.json({
-      success: true,
-      data: {
-        totalRaffles: raffles.length,
-        totalCollected,
-        raffles
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const updateSettings = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user!.userId;
-    const { pixKey, whatsappToken } = req.body;
-
-    const updated = await prisma.user.update({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
-      data: { pixKey, whatsappToken }
+      include: {
+        raffles: true, // This relation exists
+      }
     });
 
-    res.json({ success: true, user: updated });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const createRaffle = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user!.userId;
-    const { name, description, pricePerNumber, slug, totalNumbers } = req.body;
-    const photoUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
-
-    const activeSub = await prisma.subscription.findFirst({
-      where: { userId, status: 'ACTIVE' },
-      include: { plan: true }
-    });
-    
-    if (!activeSub) throw new BadRequestError('Você precisa de uma assinatura ativa.');
-    
-    const countRaffles = await prisma.raffle.count({ where: { userId } });
-    if (countRaffles >= activeSub.plan.maxRaffles) {
-      throw new BadRequestError(`Seu plano permite apenas ${activeSub.plan.maxRaffles} rifas.`);
+    if (!user) {
+      throw new NotFoundError('User not found');
     }
 
-    const _totalNumbers = parseInt(totalNumbers);
+    // Removed all subscription and plan-related data fetching
 
-    const raffle = await prisma.raffle.create({
-      data: {
-        userId,
-        name,
-        description,
-        slug,
-        pricePerNumber: parseFloat(pricePerNumber),
-        totalNumbers: _totalNumbers,
-        photoUrl
-      }
-    });
-
-    const numbersToInsert = Array.from({ length: _totalNumbers }).map((_, i) => ({
-      raffleId: raffle.id,
-      number: i + 1,
-      status: 'AVAILABLE'
-    }));
-
-    await prisma.raffleNumber.createMany({
-      data: numbersToInsert
-    });
-
-    res.status(201).json({ success: true, raffle });
+    res.json({ success: true, user, raffles: user.raffles });
   } catch (error) {
     next(error);
   }
 };
 
-export const getRaffles = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const listRaffles = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user?.id;
     const raffles = await prisma.raffle.findMany({ where: { userId } });
     res.json({ success: true, raffles });
   } catch (error) {
     next(error);
   }
 };
+
+export const createRaffle = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.id;
+    const { name, description, price, numbers } = req.body;
+
+    if (!name || !description || !price || !numbers) {
+        throw new BadRequestError('Missing required raffle fields.');
+    }
+
+    const newRaffle = await prisma.raffle.create({
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        numbers: parseInt(numbers, 10),
+        userId: userId!
+      },
+    });
+    res.status(201).json({ success: true, raffle: newRaffle });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateRaffle = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const raffleId = parseInt(req.params.id, 10);
+    const userId = req.user?.id;
+    const { name, description, price } = req.body;
+
+    const updatedRaffle = await prisma.raffle.update({
+      where: { id: raffleId, userId: userId }, // Ensure user owns the raffle
+      data: { name, description, price: price ? parseFloat(price) : undefined },
+    });
+    res.json({ success: true, raffle: updatedRaffle });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRaffleDetails = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const raffleId = parseInt(req.params.id, 10);
+    const userId = req.user?.id;
+
+    const raffle = await prisma.raffle.findUnique({
+      where: { id: raffleId, userId: userId },
+      include: {
+        ReservationPayment: true, // Changed from RaffleNumber
+      },
+    });
+
+    if (!raffle) {
+      throw new NotFoundError('Raffle not found');
+    }
+    res.json({ success: true, raffle });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// NOTE: All subscription management functions have been removed as the models do not exist.
