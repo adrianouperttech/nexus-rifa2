@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getPrismaClient } from '../utils/prisma';
 import { NotFoundError, BadRequestError } from '../utils/errors';
-import { AuthenticatedRequest } from '../middlewares/authMiddleware';
+import { AuthenticatedRequest } from '../middlewares/auth'; // Corrected path
 
 const prisma = getPrismaClient();
 

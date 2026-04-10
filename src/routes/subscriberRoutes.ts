@@ -1,31 +1,24 @@
 import { Router } from 'express';
-import multer from 'multer';
-import { authenticateToken, requireSubscriber } from '../middlewares/auth';
-import { 
-  buyPlan, getDashboardInfo, updateSettings, createRaffle, getRaffles 
+import { authMiddleware } from '../middlewares/auth';
+import {
+    getDashboard,      // Corrected from getDashboardInfo
+    listRaffles,       // Corrected from getRaffles
+    createRaffle,
+    updateRaffle,
+    getRaffleDetails
 } from '../controllers/subscriberController';
-
-// Multer photo upload config (local temp storage)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-const upload = multer({ storage });
 
 const router = Router();
 
-router.use(authenticateToken);
-router.use(requireSubscriber);
+// Apply auth middleware to all subscriber routes
+router.use(authMiddleware);
 
-router.post('/plan/buy', buyPlan);
-router.get('/dashboard', getDashboardInfo);
-router.put('/settings', updateSettings);
+router.get('/dashboard', getDashboard);
+router.get('/raffles', listRaffles);
+router.post('/raffles', createRaffle);
+router.put('/raffles/:id', updateRaffle);
+router.get('/raffles/:id', getRaffleDetails);
 
-router.get('/raffles', getRaffles);
-router.post('/raffles', upload.single('photo'), createRaffle);
+// Removed routes for buyPlan and updateSettings as they no longer exist.
 
 export default router;

@@ -1,19 +1,18 @@
 import { Router } from 'express';
-import { authenticateToken, requireAdmin } from '../middlewares/auth';
-import { 
-  getDashboardInfo, listSubscribers, toggleSubscriberStatus, createPlan, getPlans 
-} from '../controllers/adminController';
+import { listUsers, getUserDetails, updateUser } from '../controllers/adminController';
+import { authMiddleware } from '../middlewares/auth';
 
 const router = Router();
 
-router.use(authenticateToken);
-router.use(requireAdmin);
+// Applying auth and admin guards to all routes in this file
+router.use(authMiddleware);
 
-router.get('/dashboard', getDashboardInfo);
-router.get('/subscribers', listSubscribers);
-router.patch('/subscribers/:id/status', toggleSubscriberStatus);
+// Routes that are valid based on the updated adminController
+router.get('/users', listUsers);
+router.get('/users/:id', getUserDetails);
+router.put('/users/:id', updateUser);
 
-router.post('/plans', createPlan);
-router.get('/plans', getPlans);
+// Removed routes for getDashboardInfo, listSubscribers, toggleSubscriberStatus, createPlan, and getPlans
+// as they do not exist in the controller anymore.
 
 export default router;
