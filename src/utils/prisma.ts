@@ -1,13 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 
-// With Prisma 7+, the database URL is passed directly to the client constructor,
-// as the `url` field in the schema is deprecated.
+// The Prisma Client will automatically read the DATABASE_URL environment variable.
+// We can add a check to ensure it's set.
 if (!process.env.DATABASE_URL) {
   throw new Error("CRITICAL: DATABASE_URL environment variable is not set.");
 }
 
-export const prisma = new PrismaClient({
-  datasourceUrls: {
-    db: process.env.DATABASE_URL,
-  },
-});
+// Instantiate the Prisma Client without any arguments.
+// It will use the `url` from the `datasource` block in your `schema.prisma`,
+// which should be set to `env("DATABASE_URL")`.
+export const prisma = new PrismaClient();
