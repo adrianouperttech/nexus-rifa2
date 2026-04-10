@@ -5,7 +5,6 @@ import adminRoutes from './routes/adminRoutes';
 import authRoutes from './routes/authRoutes';
 import publicRoutes from './routes/publicRoutes';
 import subscriberRoutes from './routes/subscriberRoutes';
-import { startCron } from './utils/cron';
 import { prisma } from './utils/prisma';
 import 'source-map-support/register';
 
@@ -34,9 +33,6 @@ async function startServer() {
     // so we just need to ensure the connection is alive.
     await prisma.$connect();
     console.log('Database connected successfully');
-
-    // Start the cron job
-    // startCron(prisma); // Commenting out for now, as it doesn't exist
 
     app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
