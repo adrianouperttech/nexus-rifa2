@@ -1,15 +1,16 @@
+import dotenv from 'dotenv';
+import 'source-map-support/register';
+
+// Load environment variables at the very beginning
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import adminRoutes from './routes/adminRoutes';
 import authRoutes from './routes/authRoutes';
 import publicRoutes from './routes/publicRoutes';
 import subscriberRoutes from './routes/subscriberRoutes';
 import { prisma } from './utils/prisma';
-import 'source-map-support/register';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -33,14 +34,13 @@ async function startServer() {
     // so we just need to ensure the connection is alive.
     await prisma.$connect();
     console.log('Database connected successfully');
-
+    
     app.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
+      console.log(`Server is running on port ${port}`);
     });
 
   } catch (error) {
     console.error('Failed to start the server:', error);
-    await prisma.$disconnect();
     process.exit(1);
   }
 }
