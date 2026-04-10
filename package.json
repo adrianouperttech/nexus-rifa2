@@ -35,5 +35,7 @@
     "tsx": "^4.11.0",
     "typescript": "^5.4.5"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node-cron": "^3.0.0"
+  }
 }
