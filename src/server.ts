@@ -1,12 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import userRoutes from './routes/userRoutes';
-import raffleRoutes from './routes/raffleRoutes';
-import buyerRoutes from './routes/buyerRoutes';
-import reservationRoutes from './routes/reservationRoutes';
-import { startCron } from './utils/cron';
-import { prisma } from './utils/prisma';
+import userRoutes from './routes/userRoutes.js';
+import raffleRoutes from './routes/raffleRoutes.js';
+import buyerRoutes from './routes/buyerRoutes.js';
+import reservationRoutes from './routes/reservationRoutes.js';
+import { startCron } from './utils/cron.js';
+import { prisma } from './utils/prisma.js';
 import 'source-map-support/register';
 
 // Load environment variables
