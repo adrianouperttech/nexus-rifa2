@@ -1,9 +1,4 @@
-import dotenv from 'dotenv';
 import 'source-map-support/register';
-
-// Load environment variables at the very beginning
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
 import adminRoutes from './routes/adminRoutes';
@@ -30,8 +25,6 @@ app.use('/api', subscriberRoutes);
 
 async function startServer() {
   try {
-    // The Prisma client is now initialized in utils/prisma.ts, 
-    // so we just need to ensure the connection is alive.
     await prisma.$connect();
     console.log('Database connected successfully');
     
